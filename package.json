@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "server": "nodemon server.js",
-    "client": "cd client && npm start",
+    "client": "cd client && yarn serve",
     "dev": "concurrently --names \"server,client\" \"npm run server --silent\" \"npm run client --silent\""
   },
   "keywords": [],
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "concurrently": "^3.6.0",
-    "nodemon": "^1.18.1"
+    "nodemon": "^1.18.1",
+    "node-pre-gyp": "0.12.0"
   }
 }
