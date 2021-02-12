@@ -1,10 +1,28 @@
 <template>
   <div class="home">
-    <v-container text-xs-center v-if="getPosts">
+    <v-container text-xs-center v-if="posts">
+      <v-layout row>
+        <v-dialog v-model="loading" persistent fullscreen>
+          <v-container fill-height>
+            <v-layout row justify-center align-center>
+              <v-progress-circular
+                indeterminate
+                :size="70"
+                :width="7"
+                color="secondary"
+              ></v-progress-circular>
+            </v-layout>
+          </v-container>
+        </v-dialog>
+      </v-layout>
       <v-flex xs12>
-        <v-carousel v-bind="{ cycle: true }" interval="3000">
+        <v-carousel
+          v-if="!loading && posts.length > 0"
+          v-bind="{ cycle: true }"
+          interval="3000"
+        >
           <v-carousel-item
-            v-for="post in getPosts"
+            v-for="post in posts"
             :key="post._id"
             :src="post.imageUrl"
           >
@@ -17,44 +35,18 @@
 </template>
 
 <script>
-import { gql } from "apollo-boost";
+import { mapGetters } from "vuex";
 export default {
   name: "Home",
-  data() {
-    return {
-      posts: [],
-    };
+  created() {
+    this.handleGetCarousalPosts();
   },
-  apollo: {
-    getPosts: {
-      query: gql`
-        query {
-          getPosts {
-            _id
-            title
-            imageUrl
-            categories
-            description
-            createdDate
-            likes
-            createdBy {
-              _id
-              username
-              email
-              password
-              joinDate
-            }
-          }
-        }
-      `,
-      result({ data, loading }) {
-        if (!loading) {
-          this.posts = data.getPosts();
-        }
-      },
-      error(err) {
-        console.error(err);
-      },
+  computed: {
+    ...mapGetters(["loading", "posts"]),
+  },
+  methods: {
+    handleGetCarousalPosts() {
+      this.$store.dispatch("getPosts");
     },
   },
 };
