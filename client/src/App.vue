@@ -89,6 +89,39 @@
         <transition name="fade">
           <router-view />
         </transition>
+
+        <!-- Auth Snackbar -->
+        <v-snackbar
+          v-model="authSnackbar"
+          color="success"
+          :timeout="5000"
+          bottom
+          left
+        >
+          <v-flex row justify-center align-center>
+            <v-icon class="mr-3">check_circle</v-icon>
+            <h3>You are now signed in!</h3>
+            <v-btn dark text @click="authSnackbar = false">Close</v-btn>
+          </v-flex>
+        </v-snackbar>
+
+      <!-- Auth Error Snackbar -->
+        <v-snackbar
+          v-if="authError"
+          v-model="authErrorSnackbar"
+          color="info"
+          :timeout="5000"
+          bottom
+          left
+        >
+          <v-flex row justify-center align-center>
+            <v-icon class="mr-3">cancel</v-icon>
+            <h3>{{ authError.message }}</h3>
+            <v-btn dark text to="/signin">Signin</v-btn>
+          </v-flex>
+        </v-snackbar>
+
+        
       </v-container>
     </main>
   </v-app>
@@ -106,9 +139,25 @@ export default {
 
   data: () => ({
     sideNav: false,
+    authSnackbar: false,
+    authErrorSnackbar: false
   }),
+  watch: {
+    // if we had no value for user before, show snackbar
+    user(newValue, oldValue) {
+      if (oldValue == null) {
+        this.authSnackbar = true;
+      }
+    },
+    authError(value){
+      // If auth error not null, show auth error snackbar
+      if(value !== null){
+        this.authErrorSnackbar = true;
+      }
+    }
+  },
   computed: {
-    ...mapGetters(["user"]),
+    ...mapGetters(["authError","user"]),
     horizontalNavItems() {
       let items = [
         { icon: "chat", title: "Posts", link: "/posts" },
@@ -141,7 +190,7 @@ export default {
       this.sideNav = !this.sideNav;
     },
     handleSignoutUser() {
-      this.$store.dispatch("signoutUser"); 
+      this.$store.dispatch("signoutUser");
     },
   },
 };

@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import router from "../router"
 
-import { GET_CURRENT_USER, GET_POSTS, SIGNIN_USER } from "../queries"
+import { GET_CURRENT_USER, GET_POSTS, SIGNIN_USER, SIGNUP_USER } from "../queries"
 import { defaultClient as apolloClient } from '../main';
 
 Vue.use(Vuex)
@@ -12,6 +12,8 @@ export default new Vuex.Store({
     posts: [],
     user: null,
     loading: false,
+    error: null,
+    authError: null
   },
   mutations: {
     setPosts: (state, payload) => {
@@ -23,6 +25,15 @@ export default new Vuex.Store({
     setLoading: (state, payload) => {
       state.loading = payload;
     },
+    setError: (state, payload) => {
+      state.error = payload;
+    },
+    setAuthError: (state, payload) => {
+      state.authError = payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    }
   },
   actions: {
     getCurrentUser: ({ commit }) => {
@@ -50,17 +61,36 @@ export default new Vuex.Store({
       })
     },
     signinUser: ({ commit }, payload) => {
-      // clear token to prevent errors (if malformed )
-      localStorage.setItem('token', '');
-
+      commit('clearError');
+      commit("setLoading", true);
       apolloClient.mutate({
         mutation: SIGNIN_USER,
         variables: payload
       }).then(({ data }) => {
+        commit("setLoading", false);
         localStorage.setItem('token', data.signinUser.token);
         // Refresh a page to load getCurrentUser from main.js 
         router.go();
       }).catch(err => {
+        commit("setLoading", false);
+        commit('setError', err);
+        console.error(err);
+      })
+    },
+    signupUser: ({ commit }, payload) => {
+      commit('clearError');
+      commit("setLoading", true);
+      apolloClient.mutate({
+        mutation: SIGNUP_USER,
+        variables: payload
+      }).then(({ data }) => {
+        commit("setLoading", false);
+        localStorage.setItem('token', data.signupUser.token);
+        // Refresh a page to load getCurrentUser from main.js 
+        router.go();
+      }).catch(err => {
+        commit("setLoading", false);
+        commit('setError', err);
         console.error(err);
       })
     },
@@ -73,11 +103,13 @@ export default new Vuex.Store({
       await apolloClient.resetStore();
       //redirect home - kick users out of private pages (i.e. Profile)
       router.push("/");
-    }
+    },
   },
   getters: {
     posts: state => state.posts,
     user: state => state.user,
     loading: state => state.loading,
+    error: state => state.error,
+    authError: state => state.authError
   }
 })
