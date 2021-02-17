@@ -9,7 +9,12 @@
         :key="post._id"
       >
         <v-card hover>
-          <v-img :src="post.imageUrl" height="30vh" lazy></v-img>
+          <v-img
+            @click.native="goToPost(post._id)"
+            :src="post.imageUrl"
+            height="30vh"
+            lazy
+          ></v-img>
           <v-card-actions>
             <v-card-title primary>
               <div>
@@ -91,6 +96,9 @@ export default {
     },
   },
   methods: {
+    goToPost(postId) {
+      this.$router.push(`/posts/${postId}`);
+    },
     showMorePosts() {
       this.pageNum += 1;
       // fetch mora data and transform original result

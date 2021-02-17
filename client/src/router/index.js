@@ -1,13 +1,14 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import Home from '../views/Home.vue';
 
-import AddPost from '@/components/Posts/AddPost.vue'
-import Posts from '@/components/Posts/Posts.vue'
+import AddPost from '@/components/Posts/AddPost.vue';
+import Posts from '@/components/Posts/Posts.vue';
+import Post from '@/components/Posts/Post.vue';
 
-import Profile from '@/components/Auth/Profile.vue'
-import SignIn from '@/components/Auth/SignIn.vue'
-import SignUp from '@/components/Auth/SignUp.vue'
+import Profile from '@/components/Auth/Profile.vue';
+import SignIn from '@/components/Auth/SignIn.vue';
+import SignUp from '@/components/Auth/SignUp.vue';
 
 import AuthGuard from '../AuthGuard';
 
@@ -29,6 +30,12 @@ const routes = [
     path: '/Posts',
     name: 'posts',
     component: Posts
+  },
+  {
+    path: '/Posts/:postId',
+    name: 'Post',
+    component: Post,
+    props: true
   },
   {
     path: '/profile',
