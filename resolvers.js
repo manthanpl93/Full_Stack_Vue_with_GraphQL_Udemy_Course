@@ -13,7 +13,7 @@ module.exports = {
                 return null;
             }
             return await User.findOne({ username: currentUser.username }).populate({
-                path: 'favourites',
+                path: 'favorites',
                 model: 'Post'
             });
         },
@@ -86,6 +86,42 @@ module.exports = {
                 model: "User"
             });
             return post.messages[0];
+        },
+        likePost: async (_, { postId, username }, { Post, User }) => {
+            // Find Post, add 1 to its 'likes' value
+            const post = await Post.findOneAndUpdate(
+                { _id: postId },
+                { $inc: { likes: 1 } },
+                { new: true }
+            );
+            //Find User, add id of post to its favorites array(which will be populated as Posts)
+            const user = await User.findOneAndUpdate(
+                { username },
+                { $addToSet: { favorites: postId } },
+                { new: true }
+            ).populate({
+                path: "favorites",
+                model: "Post"
+            });
+            return { likes: post.likes, favorites: user.favorites };
+        },
+        unlikePost: async (_, { postId, username }, { Post, User }) => {
+            // Find Post, add -1 to its 'likes' value
+            const post = await Post.findOneAndUpdate(
+                { _id: postId },
+                { $inc: { likes: -1 } },
+                { new: true }
+            );
+            //Find User, remove id of post to from favorites array(which will be populated as Posts)
+            const user = await User.findOneAndUpdate(
+                { username },
+                { $pull: { favorites: postId } },
+                { new: true }
+            ).populate({
+                path: "favorites",
+                model: "Post"
+            });
+            return { likes: post.likes, favorites: user.favorites };
         },
         signinUser: async (_, { username, password }, { User }) => {
             const user = await User.findOne({ username });

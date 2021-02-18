@@ -71,8 +71,14 @@
         <!-- Profile Button -->
         <v-btn color="primary" to="/profile" v-if="user">
           <v-icon left class="hidden-sm-only">account_box</v-icon>
-          <v-badge right color="blue darken-2">
-            <span slot="badge">1</span>
+          <v-badge
+            right
+            color="blue darken-4"
+            :class="{ bounce: badgeAnimated }"
+          >
+            <span slot="badge" v-if="userFavorites.length">{{
+              userFavorites.length
+            }}</span>
             Profile
           </v-badge>
         </v-btn>
@@ -105,7 +111,7 @@
           </v-flex>
         </v-snackbar>
 
-      <!-- Auth Error Snackbar -->
+        <!-- Auth Error Snackbar -->
         <v-snackbar
           v-if="authError"
           v-model="authErrorSnackbar"
@@ -120,8 +126,6 @@
             <v-btn dark text to="/signin">Signin</v-btn>
           </v-flex>
         </v-snackbar>
-
-        
       </v-container>
     </main>
   </v-app>
@@ -140,7 +144,8 @@ export default {
   data: () => ({
     sideNav: false,
     authSnackbar: false,
-    authErrorSnackbar: false
+    authErrorSnackbar: false,
+    badgeAnimated: false,
   }),
   watch: {
     // if we had no value for user before, show snackbar
@@ -149,15 +154,21 @@ export default {
         this.authSnackbar = true;
       }
     },
-    authError(value){
+    authError(value) {
       // If auth error not null, show auth error snackbar
-      if(value !== null){
+      if (value !== null) {
         this.authErrorSnackbar = true;
       }
-    }
+    },
+    userFavorites(value) {
+      if (value) {
+        this.badgeAnimated = true;
+        setTimeout(() => (this.badgeAnimated = false), 1000);
+      }
+    },
   },
   computed: {
-    ...mapGetters(["authError","user"]),
+    ...mapGetters(["authError", "user", "userFavorites"]),
     horizontalNavItems() {
       let items = [
         { icon: "chat", title: "Posts", link: "/posts" },
@@ -211,5 +222,30 @@ export default {
 .fade-leave-active {
   opacity: 0;
   transform: translateX(-25px);
+}
+
+/* User Favourite Animation */
+.bounce {
+  animation: bounce 1s both;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -20px, 0);
+  }
+  70% {
+    transform: translate3d(0, -10px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
 }
 </style>

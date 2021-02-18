@@ -6,8 +6,12 @@
         <v-card hover>
           <v-card-title>
             <h1>{{ getPost.title }}</h1>
-            <v-btn large icon v-if="user">
-              <v-icon large color="grey">favorite</v-icon>
+            <v-btn @click="handleToggleLike" large icon v-if="user">
+              <v-icon
+                large
+                :color="checkIfPostLiked(getPost._id) ? 'red' : 'grey'"
+                >favorite</v-icon
+              >
             </v-btn>
             <h3 class="ml-3 font-weight-thin">{{ getPost.likes }} LIKES</h3>
             <v-spacer></v-spacer>
@@ -56,7 +60,7 @@
             v-model="isFormValid"
             lazy-validation
             ref="form"
-            @submit.prevent="handleAddPostMessage"
+            @submit.prevent="handleToggleLike"
           >
             <v-layout row>
               <v-flex xs12>
@@ -121,13 +125,19 @@
   </v-container>
 </template>
 <script>
-import { ADD_POST_MESSAGE, GET_POST } from "../../queries";
+import {
+  ADD_POST_MESSAGE,
+  GET_POST,
+  LIKE_POST,
+  UNLIKE_POST,
+} from "../../queries";
 import { mapGetters } from "vuex";
 export default {
   name: "Post",
   props: ["postId"],
   data() {
     return {
+      postLiked: false,
       dialog: false,
       messageBody: "",
       isFormValid: true,
@@ -149,9 +159,91 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["user"]),
+    ...mapGetters(["user", "userFavorites"]),
   },
   methods: {
+    checkIfPostLiked(postId) {
+      //Check if user favorites includes post with id of 'postId'
+      if (
+        this.userFavorites &&
+        this.userFavorites.some((fav) => fav._id === postId)
+      ) {
+        this.postLiked = true;
+        return true;
+      } else {
+        this.postLiked = false;
+        return false;
+      }
+    },
+    handleToggleLike() {
+      if (this.postLiked) {
+        this.handleUnlikePost();
+      } else {
+        this.handleLikePost();
+      }
+    },
+    handleLikePost() {
+      const variables = {
+        postId: this.postId,
+        username: this.user.username,
+      };
+      this.$apollo
+        .mutate({
+          mutation: LIKE_POST,
+          variables,
+          update: (cache, { data: { likePost } }) => {
+            const data = cache.readQuery({
+              query: GET_POST,
+              variables: { postId: this.postId },
+            });
+            data.getPost.likes += 1;
+            cache.writeQuery({
+              query: GET_POST,
+              variables: { postId: this.postId },
+              data,
+            });
+          },
+        })
+        .then(({ data }) => {
+          const updatedUser = {
+            ...this.user,
+            favorites: data.likePost.favorites,
+          };
+          this.$store.commit("setUser", updatedUser);
+        })
+        .catch((error) => console.error(error));
+    },
+    handleUnlikePost() {
+      const variables = {
+        postId: this.postId,
+        username: this.user.username,
+      };
+      this.$apollo
+        .mutate({
+          mutation: UNLIKE_POST,
+          variables,
+          update: (cache, { data: { likePost } }) => {
+            const data = cache.readQuery({
+              query: GET_POST,
+              variables: { postId: this.postId },
+            });
+            data.getPost.likes -= 1;
+            cache.writeQuery({
+              query: GET_POST,
+              variables: { postId: this.postId },
+              data,
+            });
+          },
+        })
+        .then(({ data }) => {
+          const updatedUser = {
+            ...this.user,
+            favorites: data.unlikePost.favorites,
+          };
+          this.$store.commit("setUser", updatedUser);
+        })
+        .catch((error) => console.error(error));
+    },
     checkIfOwnMessage(message) {
       return this.user && this.user._id === message.messageUser._id;
     },
