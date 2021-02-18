@@ -45,6 +45,8 @@
 
       <!-- Search Input -->
       <v-text-field
+        v-model="searchTerm"
+        @input="handleSearchPosts"
         flex
         prepend-icon="search"
         placeholder="Search posts"
@@ -52,6 +54,28 @@
         single-line
         hide-details
       ></v-text-field>
+
+      <!-- Search Results Card -->
+      <v-card dark v-if="searchResults.length" id="search__card">
+        <v-list>
+          <v-list-item
+            @click="goToSearchResult(result._id)"
+            v-for="result in searchResults"
+            :key="result._id"
+          >
+            <v-list-item-title>
+              {{ result.title }}
+              <span class="font-weight-thin">{{
+                formatDescription(result.description)
+              }}</span>
+            </v-list-item-title>
+            <!-- Show Icon If Result Favourited By User  -->
+            <v-list-item-action v-if="checkIfUserFavourite(result._id)">
+              <v-icon>favorite</v-icon>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
+      </v-card>
 
       <v-spacer></v-spacer>
 
@@ -142,6 +166,7 @@ export default {
   },
 
   data: () => ({
+    searchTerm: "",
     sideNav: false,
     authSnackbar: false,
     authErrorSnackbar: false,
@@ -168,7 +193,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["authError", "user", "userFavorites"]),
+    ...mapGetters(["searchResults", "authError", "user", "userFavorites"]),
     horizontalNavItems() {
       let items = [
         { icon: "chat", title: "Posts", link: "/posts" },
@@ -197,11 +222,33 @@ export default {
     },
   },
   methods: {
+    handleSearchPosts() {
+      this.$store.dispatch("searchPosts", {
+        searchTerm: this.searchTerm,
+      });
+    },
+    goToSearchResult(resultId) {
+      // Clear search term
+      this.searchTerm = "";
+      // Goto desired result
+      this.$router.push(`/posts/${resultId}`);
+      // Clear Search results
+      this.$store.commit("clearSearchResults");
+    },
+    checkIfUserFavourite(resultId) {
+      return (
+        this.userFavorites &&
+        this.userFavorites.some((fav) => fav._id === resultId)
+      );
+    },
     toggleSideNav() {
       this.sideNav = !this.sideNav;
     },
     handleSignoutUser() {
       this.$store.dispatch("signoutUser");
+    },
+    formatDescription(desc) {
+      return desc.length > 20 ? `${desc.slice(0, 20)}...` : desc;
     },
   },
 };
@@ -222,6 +269,15 @@ export default {
 .fade-leave-active {
   opacity: 0;
   transform: translateX(-25px);
+}
+
+/* Search Results Card */
+#search__card {
+  position: absolute;
+  width: 100vw;
+  z-index: 8;
+  top: 100%;
+  left: 0%;
 }
 
 /* User Favourite Animation */
