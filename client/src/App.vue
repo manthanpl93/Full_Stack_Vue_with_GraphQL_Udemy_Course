@@ -82,18 +82,17 @@
       <!-- Horizontal Navbar Links -->
       <v-toolbar-items class="hidden-xs-only">
         <v-btn
-          flat
+          text
           v-for="item in horizontalNavItems"
           :key="item.title"
           :to="item.link"
-          color="primary"
         >
           <v-icon left class="hidden-sm-only">{{ item.icon }}</v-icon>
           {{ item.title }}
         </v-btn>
 
         <!-- Profile Button -->
-        <v-btn color="primary" to="/profile" v-if="user">
+        <v-btn to="/profile" v-if="user" text>
           <v-icon left class="hidden-sm-only">account_box</v-icon>
           <v-badge
             right
@@ -108,7 +107,7 @@
         </v-btn>
 
         <!-- Signout Button -->
-        <v-btn color="primary" v-if="user" @click="handleSignoutUser">
+        <v-btn v-if="user" @click="handleSignoutUser" text >
           <v-icon left class="hidden-sm-only">exit_to_app</v-icon>
           Signout
         </v-btn>

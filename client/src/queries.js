@@ -65,9 +65,24 @@ query{
   }
 }
 `
+
+export const GET_USER_POSTS = gql`
+query($userId: ID!){
+  getUserPosts(userId: $userId){
+    _id
+    title
+    imageUrl
+    categories
+    description
+    createdDate
+    likes
+  }
+}
+`
+
 export const INFINITE_SCROLL_POSTS = gql`
 query($pageNum: Int!, $pageSize: Int!){
-  infiniteScrollPosts(pageNum:$pageNum, pageSize: $pageSize){
+  infiniteScrollPosts(pageNum: $pageNum, pageSize: $pageSize){
     hasMore
     posts{
       _id
@@ -96,21 +111,21 @@ query($pageNum: Int!, $pageSize: Int!){
 /* Post Mutaions */
 export const ADD_POST = gql`
 mutation(
-    $title:String!, 
-    $imageUrl: String!,
-    $categories: [String]!, 
-    $description: String!,
-  	$creatorId: ID!
+  $title: String!,
+  $imageUrl: String!,
+  $categories: [String]!,
+  $description: String!,
+  $creatorId: ID!
 ) {
   addPost(
     title: $title,
-    imageUrl: $imageUrl, 
-    categories: $categories,  
+    imageUrl: $imageUrl,
+    categories: $categories,
     description: $description,
-  creatorId:$creatorId 
+    creatorId: $creatorId
   ){
     _id
-		title
+    title
     imageUrl
     categories
     description
@@ -118,19 +133,47 @@ mutation(
 }
 `;
 
-export const ADD_POST_MESSAGE = gql`
-  mutation($messageBody: String!, $userId: ID!, $postId: ID!){
-    addPostMessage(messageBody: $messageBody, userId: $userId, postId:$postId  ){
+export const UPDATE_USER_POST = gql`
+mutation($postId: ID!, $userId: ID!, $title: String!, $imageUrl: String!,$categories: [String]!, $description: String!){
+  updateUserPost(postId: $postId , userId: $userId, title: $title, imageUrl: $imageUrl,
+    categories: $categories, description:$description){
       _id
-      messageBody
-      messageDate
-      messageUser{
+      title
+      imageUrl
+      categories
+      createdDate
+      description
+      likes
+      createdBy{
         _id
-        username
         avatar
       }
+  }
+}
+`
+
+export const DELETE_USER_POST = gql`
+  mutation($postId: ID!){
+    deleteUserPost(postId: $postId){
+      _id
     }
   }
+`
+
+
+export const ADD_POST_MESSAGE = gql`
+mutation($messageBody: String!, $userId: ID!, $postId: ID!){
+  addPostMessage(messageBody: $messageBody, userId: $userId, postId: $postId){
+    _id
+    messageBody
+    messageDate
+    messageUser{
+      _id
+      username
+      avatar
+    }
+  }
+}
 `;
 
 export const LIKE_POST = gql`
@@ -155,7 +198,7 @@ mutation($postId: ID!, $username: String!){
       _id
       title
       imageUrl
-      
+
     }
   }
 }
@@ -165,15 +208,15 @@ mutation($postId: ID!, $username: String!){
 /* User Mutaions */
 export const SIGNIN_USER = gql`
 mutation($username: String!, $password: String!){
-  signinUser(username: $username,password: $password){
+  signinUser(username: $username, password: $password){
     token
   }
 }
 `;
 
 export const SIGNUP_USER = gql`
-mutation($username: String!, $email: String! ,$password: String!){
-  signupUser(username:$username,email:$email,password:$password){
+mutation($username: String!, $email: String!, $password: String!){
+  signupUser(username: $username, email: $email, password: $password){
     token
   }
 }
